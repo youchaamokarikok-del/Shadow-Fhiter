@@ -16,8 +16,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
           pip install buildozer "cython<3"
-      - name: Accept licenses
-        run: sed -i '/^\[app\]/a android.accept_sdk_license = True' buildozer.spec
+      - name: Fix settings
+        run: |
+          sed -i '/^\[app\]/a android.accept_sdk_license = True' buildozer.spec
+          sed -i 's/^requirements = .*/requirements = python3==3.11.5,hostpython3==3.11.5,pygame/' buildozer.spec
+          grep requirements buildozer.spec
       - name: Build
         shell: bash
         run: |
