@@ -25,7 +25,7 @@ jobs:
           buildozer android debug 2>&1 | tee build.log
       - name: SHOW ERROR
         if: always()
-        run: tail -n 40 build.log
+        run: grep -v '^#' build.log | tail -n 45
       - uses: actions/upload-artifact@v4
         with:
           name: ShadowFighter-apk
