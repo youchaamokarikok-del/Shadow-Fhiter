@@ -19,8 +19,10 @@ jobs:
       - name: Fix settings
         run: |
           sed -i '/^\[app\]/a android.accept_sdk_license = True' buildozer.spec
-          sed -i 's/^requirements = .*/requirements = python3==3.11.5,hostpython3==3.11.5,pygame/' buildozer.spec
-          grep requirements buildozer.spec
+          sed -i '/^\[app\]/a p4a.branch = v2024.01.21' buildozer.spec
+          sed -i '/^\[app\]/a android.ndk = 25b' buildozer.spec
+          sed -i 's/^requirements = .*/requirements = python3,pygame/' buildozer.spec
+          cat buildozer.spec
       - name: Build
         shell: bash
         run: |
