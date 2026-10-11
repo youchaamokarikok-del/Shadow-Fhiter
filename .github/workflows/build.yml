@@ -19,7 +19,7 @@ jobs:
       - name: Fix settings
         run: |
           sed -i '/^\[app\]/a android.accept_sdk_license = True' buildozer.spec
-          sed -i '/^\[app\]/a p4a.branch = v2024.01.21' buildozer.spec
+          sed -i '/^\[app\]/a p4a.branch = v2023.09.16' buildozer.spec
           sed -i '/^\[app\]/a android.ndk = 25b' buildozer.spec
           sed -i 's/^requirements = .*/requirements = python3,pygame/' buildozer.spec
           cat buildozer.spec
@@ -30,7 +30,7 @@ jobs:
           buildozer android debug 2>&1 | tee build.log
       - name: SHOW ERROR
         if: always()
-        run: sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' build.log | grep -v '^#' | tail -n 40
+        run: sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' build.log | grep -v '^#' | cut -c1-120 | tail -n 30
       - uses: actions/upload-artifact@v4
         with:
           name: ShadowFighter-apk
