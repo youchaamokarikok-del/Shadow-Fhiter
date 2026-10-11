@@ -22,6 +22,8 @@ jobs:
           sed -i '/^\[app\]/a p4a.branch = v2023.09.16' buildozer.spec
           sed -i '/^\[app\]/a android.ndk = 25b' buildozer.spec
           sed -i 's/^requirements = .*/requirements = python3,pygame/' buildozer.spec
+          sed -i 's#data/icon.png#icon.png#' buildozer.spec
+          ls
           cat buildozer.spec
       - name: Build
         shell: bash
