@@ -3,37 +3,21 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Build with Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
         with:
-          python-version: "3.10"
-      - name: Install tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-          pip install buildozer "cython<3"
-      - name: Fix settings
-        run: |
-          sed -i '/^\[app\]/a android.accept_sdk_license = True' buildozer.spec
-          sed -i '/^\[app\]/a p4a.branch = v2023.09.16' buildozer.spec
-          sed -i '/^\[app\]/a android.ndk = 25b' buildozer.spec
-          sed -i 's/^requirements = .*/requirements = python3,pygame/' buildozer.spec
-          sed -i 's#data/icon.png#icon.png#' buildozer.spec
-          ls
-          cat buildozer.spec
-      - name: Build
-        shell: bash
-        run: |
-          set -o pipefail
-          buildozer android debug 2>&1 | tee build.log
-      - name: SHOW ERROR
-        if: always()
-        run: sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' build.log | grep -v '^#' | cut -c1-120 | tail -n 30
-      - uses: actions/upload-artifact@v4
+          command: buildozer android debug
+          buildozer_version: stable
+      - uses: softprops/action-gh-release@v2
         with:
-          name: ShadowFighter-apk
-          path: bin/*.apk
+          tag_name: latest
+          name: Shadow Fighter
+          files: bin/*.apk
