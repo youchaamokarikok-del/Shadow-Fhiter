@@ -24,7 +24,10 @@ jobs:
       - name: Install buildozer
         run: |
           pip install --upgrade pip
-          pip install buildozer "cython==0.29.36" virtualenv
+          pip install "buildozer==1.5.0" "cython==0.29.36" virtualenv
+      - name: Pin Android toolchain
+        run: |
+          sed -i '/^\[app\]/a p4a.branch = v2023.09.16\nandroid.ndk = 25b\nandroid.accept_sdk_license = True' buildozer.spec
       - name: Build APK
         run: |
           set +o pipefail
