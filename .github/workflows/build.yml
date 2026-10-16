@@ -25,9 +25,201 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install "buildozer==1.5.0" "cython==0.29.36" virtualenv
+      - name: Add ad helper (Java)
+        run: |
+          mkdir -p java/org/shadow
+          cat > java/org/shadow/AdHelper.java <<'JAVAEOF'
+          package org.shadow;
+
+          import android.app.Activity;
+          import android.view.Gravity;
+          import android.view.View;
+          import android.widget.FrameLayout;
+          import com.unity3d.ads.IUnityAdsInitializationListener;
+          import com.unity3d.ads.IUnityAdsLoadListener;
+          import com.unity3d.ads.IUnityAdsShowListener;
+          import com.unity3d.ads.UnityAds;
+          import com.unity3d.ads.UnityAdsLoadOptions;
+          import com.unity3d.ads.UnityAdsShowOptions;
+          import com.unity3d.services.banners.BannerView;
+          import com.unity3d.services.banners.UnityBannerSize;
+
+          public class AdHelper {
+              private static String interId = "";
+              private static String rewId = "";
+              private static String banId = "";
+              private static volatile boolean interReady = false;
+              private static volatile boolean rewReady = false;
+              private static volatile boolean earned = false;
+              private static volatile boolean inited = false;
+              private static BannerView banner = null;
+
+              public static void init(final Activity act, final String gameId, final boolean testMode,
+                                      String bId, String iId, String rId) {
+                  banId = bId;
+                  interId = iId;
+                  rewId = rId;
+                  act.runOnUiThread(new Runnable() {
+                      public void run() {
+                          UnityAds.initialize(act.getApplicationContext(), gameId, testMode, new IUnityAdsInitializationListener() {
+                              @Override
+                              public void onInitializationComplete() {
+                                  inited = true;
+                                  loadInter();
+                                  loadRew();
+                                  makeBanner(act);
+                              }
+
+                              @Override
+                              public void onInitializationFailed(UnityAds.UnityAdsInitializationError error, String message) {
+                                  inited = false;
+                              }
+                          });
+                      }
+                  });
+              }
+
+              private static void makeBanner(final Activity act) {
+                  act.runOnUiThread(new Runnable() {
+                      public void run() {
+                          try {
+                              banner = new BannerView(act, banId, new UnityBannerSize(320, 50));
+                              banner.load();
+                              FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                                      FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                              lp.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+                              act.addContentView(banner, lp);
+                              banner.setVisibility(View.GONE);
+                          } catch (Exception e) {
+                              banner = null;
+                          }
+                      }
+                  });
+              }
+
+              public static void setBanner(final Activity act, final boolean show) {
+                  act.runOnUiThread(new Runnable() {
+                      public void run() {
+                          if (banner != null) {
+                              banner.setVisibility(show ? View.VISIBLE : View.GONE);
+                          }
+                      }
+                  });
+              }
+
+              private static void loadInter() {
+                  if (!inited) return;
+                  UnityAds.load(interId, new UnityAdsLoadOptions(), new IUnityAdsLoadListener() {
+                      @Override
+                      public void onUnityAdsAdLoaded(String placementId) {
+                          interReady = true;
+                      }
+
+                      @Override
+                      public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
+                          interReady = false;
+                      }
+                  });
+              }
+
+              private static void loadRew() {
+                  if (!inited) return;
+                  UnityAds.load(rewId, new UnityAdsLoadOptions(), new IUnityAdsLoadListener() {
+                      @Override
+                      public void onUnityAdsAdLoaded(String placementId) {
+                          rewReady = true;
+                      }
+
+                      @Override
+                      public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
+                          rewReady = false;
+                      }
+                  });
+              }
+
+              public static void showInter(final Activity act) {
+                  act.runOnUiThread(new Runnable() {
+                      public void run() {
+                          if (!inited || !interReady) {
+                              loadInter();
+                              return;
+                          }
+                          interReady = false;
+                          UnityAds.show(act, interId, new UnityAdsShowOptions(), new IUnityAdsShowListener() {
+                              @Override
+                              public void onUnityAdsShowFailure(String placementId, UnityAds.UnityAdsShowError error, String message) {
+                                  loadInter();
+                              }
+
+                              @Override
+                              public void onUnityAdsShowStart(String placementId) {
+                              }
+
+                              @Override
+                              public void onUnityAdsShowClick(String placementId) {
+                              }
+
+                              @Override
+                              public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
+                                  loadInter();
+                              }
+                          });
+                      }
+                  });
+              }
+
+              public static boolean rewardReady() {
+                  return inited && rewReady;
+              }
+
+              public static void showReward(final Activity act) {
+                  act.runOnUiThread(new Runnable() {
+                      public void run() {
+                          if (!inited || !rewReady) {
+                              loadRew();
+                              return;
+                          }
+                          rewReady = false;
+                          UnityAds.show(act, rewId, new UnityAdsShowOptions(), new IUnityAdsShowListener() {
+                              @Override
+                              public void onUnityAdsShowFailure(String placementId, UnityAds.UnityAdsShowError error, String message) {
+                                  loadRew();
+                              }
+
+                              @Override
+                              public void onUnityAdsShowStart(String placementId) {
+                              }
+
+                              @Override
+                              public void onUnityAdsShowClick(String placementId) {
+                              }
+
+                              @Override
+                              public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
+                                  if (state == UnityAds.UnityAdsShowCompletionState.COMPLETED) {
+                                      earned = true;
+                                  }
+                                  loadRew();
+                              }
+                          });
+                      }
+                  });
+              }
+
+              public static boolean rewardTaken() {
+                  if (earned) {
+                      earned = false;
+                      return true;
+                  }
+                  return false;
+              }
+          }
+          JAVAEOF
       - name: Pin Android toolchain
         run: |
-          sed -i '/^\[app\]/a p4a.branch = v2023.09.16\nandroid.ndk = 25b\nandroid.accept_sdk_license = True' buildozer.spec
+          sed -i '/^android.gradle_dependencies/d;/^android.meta_data/d' buildozer.spec
+          sed -i '/^\[app\]/a p4a.branch = v2023.09.16\nandroid.ndk = 25b\nandroid.accept_sdk_license = True\nandroid.add_src = java\nandroid.add_gradle_repositories = mavenCentral()\nandroid.gradle_dependencies = com.unity3d.ads:unity-ads:4.18.0' buildozer.spec
+          grep -n 'gradle\|add_src\|meta_data' buildozer.spec
       - name: Build APK
         run: |
           set +o pipefail
