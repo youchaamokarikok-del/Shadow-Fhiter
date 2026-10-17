@@ -1,6 +1,6 @@
 [app]
 title = Shadow Fighter
-package.name = shadowfighter
+package.name = shadowfighterads
 package.domain = com.shadowfighter
 source.dir = .
 source.include_exts = py,png,ogg
