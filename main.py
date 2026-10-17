@@ -636,7 +636,7 @@ def toggle_sound():
     _apply_music()
 # ---------------------------------------------------------------- ads (Unity Ads) - safe: does nothing if anything fails
 UNITY_GAME_ID = "800401367"
-UNITY_TEST_MODE = True            # True = test ads (no money). Set to False for real ads.
+UNITY_TEST_MODE =  False          # True = test ads (no money). Set to False for real ads.
 UNITY_BANNER = "BP_Banner_Android"
 UNITY_INTER = "BP_Interstitial_Android"
 UNITY_REWARD = "BP_Rewarded_Android"
